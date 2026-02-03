@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análise Tática Hub PRO</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="logo-section">
+                <h1>⚽ Análise Tática Hub</h1>
+                <p class="version">PRO v2.0</p>
+            </div>
+
+            <div class="sidebar-section">
+                <h3>📋 Painel Tático</h3>
+                <button class="btn btn-primary" id="newGameBtn">+ NOVO JOGO / TREINO</button>
+                
+                <div class="color-picker-section">
+                    <label>Cor de Destaque:</label>
+                    <input type="color" id="accentColor" value="#00ff88">
+                </div>
+
+                <button class="btn btn-secondary" id="themeToggle">🌓 Trocar Tema</button>
+                <button class="btn btn-secondary" id="backupBtn">💾 Backup (JSON)</button>
+            </div>
+
+            <div class="sidebar-section">
+                <h3>🎮 Selecionar Análise</h3>
+                <select id="gameSelect" class="game-select">
+                    <option value="">Selecione um jogo...</option>
+                </select>
+            </div>
+
+            <div class="timer-section">
+                <div class="timer-display" id="timerDisplay">00:00</div>
+                <div class="timer-controls">
+                    <button class="btn btn-small" id="startTimer">▶️</button>
+                    <button class="btn btn-small" id="pauseTimer">⏸️</button>
+                    <button class="btn btn-small" id="resetTimer">🔄</button>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <button class="btn btn-secondary" id="exportPdfBtn">📄 PDF Completo</button>
+                <button class="btn btn-secondary" id="insertMinuteBtn">📍 Inserir Minuto</button>
+                <button class="btn btn-danger" id="deleteGameBtn">🗑️ Apagar Jogo</button>
+            </div>
+
+            <div class="sync-status">
+                <span class="sync-indicator">●</span> Sincronizado
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <!-- TABS -->
+            <div class="tabs">
+                <button class="tab active" data-tab="perfil">👤 PERFIL</button>
+                <button class="tab" data-tab="atletas">🏃 ATLETAS & NOTAS</button>
+                <button class="tab" data-tab="org-def">🛡️ ORG. DEFENSIVA</button>
+                <button class="tab" data-tab="trans-def">⚡ TRANS. DEFENSIVA</button>
+                <button class="tab" data-tab="org-of">⚔️ ORG. OFENSIVA</button>
+                <button class="tab" data-tab="trans-of">🚀 TRANS. OFENSIVA</button>
+                <button class="tab" data-tab="bolas">⚽ BOLAS PARADAS</button>
+            </div>
+
+            <!-- TAB CONTENT -->
+            <div class="tab-content active" data-content="perfil">
+                <div class="profile-section">
+                    <div class="profile-photo">
+                        <img id="profileImg" src="" alt="Foto de Perfil">
+                        <input type="file" id="profileUpload" accept="image/*" style="display:none;">
+                        <button class="btn btn-small" onclick="document.getElementById('profileUpload').click()">📷 Alterar Foto</button>
+                    </div>
+                    <div class="profile-info">
+                        <h2>Informações Gerais</h2>
+                        <input type="text" id="teamName" placeholder="Nome da Equipa" class="input-field">
+                        <input type="text" id="coachName" placeholder="Nome do Treinador" class="input-field">
+                        <input type="text" id="gameName" placeholder="Nome do Jogo/Treino" class="input-field">
+                        <input type="date" id="gameDate" class="input-field">
+                        <textarea id="gameNotes" placeholder="Notas gerais do jogo..." class="textarea-field"></textarea>
+                        <button class="btn btn-primary" id="saveProfileBtn">💾 Guardar Perfil</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" data-content="atletas">
+                <div class="athletes-section">
+                    <div class="section-header">
+                        <h2>Gestão de Atletas</h2>
+                        <button class="btn btn-primary" id="addAthleteBtn">+ Adicionar Atleta</button>
+                    </div>
+                    <div id="athletesList" class="athletes-grid"></div>
+                </div>
+            </div>
+
+            <!-- ORGANIZAÇÃO DEFENSIVA -->
+            <div class="tab-content" data-content="org-def">
+                <div class="tactics-section">
+                    <h2>🛡️ Organização Defensiva</h2>
+                    <div class="tactics-grid">
+                        <div class="tactic-card">
+                            <h3>Bloco Alto / Pressão</h3>
+                            <button class="btn btn-primary add-note-btn" data-category="org-def" data-subcategory="bloco-alto">+ Nota</button>
+                            <div class="notes-list" data-category="org-def" data-subcategory="bloco-alto"></div>
+                        </div>
+                        <div class="tactic-card">
+                            <h3>Bloco Médio / Baixo</h3>
+                            <button class="btn btn-primary add-note-btn" data-category="org-def" data-subcategory="bloco-medio">+ Nota</button>
+                            <div class="notes-list" data-category="org-def" data-subcategory="bloco-medio"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TRANSIÇÃO DEFENSIVA -->
+            <div class="tab-content" data-content="trans-def">
+                <div class="tactics-section">
+                    <h2>⚡ Transição Defensiva</h2>
+                    <div class="tactics-grid">
+                        <div class="tactic-card">
+                            <h3>Reação à Perda</h3>
+                            <button class="btn btn-primary add-note-btn" data-category="trans-def" data-subcategory="reacao-perda">+ Nota</button>
+                            <div class="notes-list" data-category="trans-def" data-subcategory="reacao-perda"></div>
+                        </div>
+                        <div class="tactic-card">
+                            <h3>Recuo Crítico</h3>
+                            <button class="btn btn-primary add-note-btn" data-category="trans-def" data-subcategory="recuo-critico">+ Nota</button>
+                            <div class="notes-list" data-category="trans-def" data-subcategory="recuo-critico"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ORGANIZAÇÃO OFENSIVA -->
+            <div class="tab-content" data-content="org-of">
+                <div class="tactics-section">
+                    <h2>⚔️ Organização Ofensiva</h2>
+                    <div class="tactics-grid">
+                        <div class="tactic-card">
+                            <h3>Construção</h3>
+                            <button class="btn btn-primary add-note-btn" data-category="org-of" data-subcategory="construcao">+ Nota</button>
+                            <div class="notes-list" data-category="org-of" data-subcategory="construcao"></div>
+                        </div>
+                        <div class="tactic-card">
+                            <h3>Criação</h3>
+                            <button class="btn btn-primary add-note-btn" data-category="org-of" data-subcategory="criacao">+ Nota</button>
+                            <div class="notes-list" data-category="org-of" data-subcategory="criacao"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TRANSIÇÃO OFENSIVA -->
+            <div class="tab-content" data-content="trans-of">
+                <div class="tactics-section">
+                    <h2>🚀 Transição Ofensiva</h2>
+                    <div class="tactics-grid">
+                        <div class="tactic-card">
+                            <h3>Transição Ofensiva</h3>
+                            <button class="btn btn-primary add-note-btn" data-category="trans-of" data-subcategory="transicao">+ Nota</button>
+                            <div class="notes-list" data-category="trans-of" data-subcategory="transicao"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BOLAS PARADAS -->
+            <div class="tab-content" data-content="bolas">
+                <div class="tactics-section">
+                    <h2>⚽ Bolas Paradas</h2>
+                    <div class="tactics-grid">
+                        <div class="tactic-card">
+                            <h3>Ofensivas</h3>
+                            <button class="btn btn-primary add-note-btn" data-category="bolas" data-subcategory="ofensivas">+ Nota</button>
+                            <div class="notes-list" data-category="bolas" data-subcategory="ofensivas"></div>
+                        </div>
+                        <div class="tactic-card">
+                            <h3>Defensivas</h3>
+                            <button class="btn btn-primary add-note-btn" data-category="bolas" data-subcategory="defensivas">+ Nota</button>
+                            <div class="notes-list" data-category="bolas" data-subcategory="defensivas"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL PARA ADICIONAR NOTA -->
+    <div id="noteModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close">&times;</span>
+            <h2>📝 Nova Nota</h2>
+            
+            <div class="form-group">
+                <label>Minuto:</label>
+                <input type="text" id="noteMinute" class="input-field" readonly>
+            </div>
+
+            <div class="form-group">
+                <label>Tipo de Nota:</label>
+                <div class="tag-selector">
+                    <button class="tag-btn positive" data-tag="positive">✅ Positivo</button>
+                    <button class="tag-btn negative" data-tag="negative">❌ Negativo</button>
+                    <button class="tag-btn neutral" data-tag="neutral">ℹ️ Neutro</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Nota:</label>
+                <textarea id="noteText" class="textarea-field" rows="4" placeholder="Escreve a tua observação..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>📎 Anexar Mídia:</label>
+                <div class="media-attachment">
+                    <input type="file" id="noteImage" accept="image/*" style="display:none;">
+                    <button class="btn btn-secondary" onclick="document.getElementById('noteImage').click()">📷 Adicionar Foto</button>
+                    <input type="text" id="noteVideoLink" class="input-field" placeholder="Cole o link do vídeo (YouTube, etc.)">
+                </div>
+                <div id="mediaPreview" class="media-preview"></div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-primary" id="saveNoteBtn">💾 Guardar Nota</button>
+                <button class="btn btn-secondary" id="cancelNoteBtn">❌ Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PARA ADICIONAR ATLETA -->
+    <div id="athleteModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close">&times;</span>
+            <h2>👤 Adicionar Atleta</h2>
+            
+            <div class="form-group">
+                <label>Foto:</label>
+                <input type="file" id="athletePhoto" accept="image/*">
+            </div>
+
+            <div class="form-group">
+                <label>Nome:</label>
+                <input type="text" id="athleteName" class="input-field" placeholder="Nome completo">
+            </div>
+
+            <div class="form-group">
+                <label>Número:</label>
+                <input type="number" id="athleteNumber" class="input-field" placeholder="Número da camisola">
+            </div>
+
+            <div class="form-group">
+                <label>Posição:</label>
+                <select id="athletePosition" class="input-field">
+                    <option value="">Selecione...</option>
+                    <option value="GR">Guarda-Redes</option>
+                    <option value="DD">Defesa Direito</option>
+                    <option value="DC">Defesa Central</option>
+                    <option value="DE">Defesa Esquerdo</option>
+                    <option value="MC">Médio Centro</option>
+                    <option value="MD">Médio Direito</option>
+                    <option value="ME">Médio Esquerdo</option>
+                    <option value="MO">Médio Ofensivo</option>
+                    <option value="ED">Extremo Direito</option>
+                    <option value="EE">Extremo Esquerdo</option>
+                    <option value="PL">Ponta de Lança</option>
+                </select>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-primary" id="saveAthleteBtn">💾 Guardar</button>
+                <button class="btn btn-secondary" id="cancelAthleteBtn">❌ Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL NOVO JOGO -->
+    <div id="newGameModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close">&times;</span>
+            <h2>⚽ Novo Jogo / Treino</h2>
+            
+            <div class="form-group">
+                <label>Nome:</label>
+                <input type="text" id="newGameName" class="input-field" placeholder="Ex: SCP vs Benfica">
+            </div>
+
+            <div class="form-group">
+                <label>Data:</label>
+                <input type="date" id="newGameDate" class="input-field">
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-primary" id="createGameBtn">✅ Criar</button>
+                <button class="btn btn-secondary" id="cancelGameBtn">❌ Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
