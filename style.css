@@ -175,29 +175,6 @@ body {
     cursor: pointer;
 }
 
-/* ========== TIMER ========== */
-.timer-section {
-    background: var(--bg-card);
-    padding: 15px;
-    border-radius: 12px;
-    border: 1px solid var(--border-color);
-    text-align: center;
-}
-
-.timer-display {
-    font-size: 48px;
-    font-weight: 800;
-    font-family: 'Courier New', monospace;
-    color: var(--primary-color);
-    margin-bottom: 12px;
-    text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
-}
-
-.timer-controls {
-    display: flex;
-    gap: 8px;
-}
-
 /* ========== SYNC STATUS ========== */
 .sync-status {
     padding: 10px;
