@@ -11,11 +11,6 @@ let db = {
     theme: 'dark'
 };
 
-// ========== TIMER ==========
-let timerInterval = null;
-let timerSeconds = 0;
-let timerRunning = false;
-
 // ========== MODALS STATE ==========
 let currentNoteCategory = null;
 let currentNoteSubcategory = null;
@@ -54,20 +49,6 @@ function initEventListeners() {
     
     // Backup
     document.getElementById('backupBtn').addEventListener('click', exportBackup);
-    
-    // Timer controls
-    document.getElementById('startTimer').addEventListener('click', startTimer);
-    document.getElementById('pauseTimer').addEventListener('click', pauseTimer);
-    document.getElementById('resetTimer').addEventListener('click', resetTimer);
-    
-    // Insert minute
-    document.getElementById('insertMinuteBtn').addEventListener('click', () => {
-        const minute = prompt('Digite o minuto:', getCurrentMinute());
-        if (minute) {
-            timerSeconds = parseInt(minute) * 60;
-            updateTimerDisplay();
-        }
-    });
     
     // New game
     document.getElementById('newGameBtn').addEventListener('click', () => {
@@ -108,8 +89,6 @@ function initEventListeners() {
     document.getElementById('cancelAthleteBtn').addEventListener('click', () => {
         closeModal('athleteModal');
     });
-    
-    document.getElementById('athletePhoto').addEventListener('change', handleAthletePhotoUpload);
     
     // Add note buttons
     document.querySelectorAll('.add-note-btn').forEach(btn => {
@@ -164,42 +143,6 @@ function toggleTheme() {
 
 function applyTheme() {
     document.documentElement.setAttribute('data-theme', db.theme);
-}
-
-// ========== TIMER ==========
-function startTimer() {
-    if (!timerRunning) {
-        timerRunning = true;
-        timerInterval = setInterval(() => {
-            timerSeconds++;
-            updateTimerDisplay();
-        }, 1000);
-    }
-}
-
-function pauseTimer() {
-    timerRunning = false;
-    if (timerInterval) {
-        clearInterval(timerInterval);
-        timerInterval = null;
-    }
-}
-
-function resetTimer() {
-    pauseTimer();
-    timerSeconds = 0;
-    updateTimerDisplay();
-}
-
-function updateTimerDisplay() {
-    const minutes = Math.floor(timerSeconds / 60);
-    const seconds = timerSeconds % 60;
-    document.getElementById('timerDisplay').textContent = 
-        `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-}
-
-function getCurrentMinute() {
-    return Math.floor(timerSeconds / 60);
 }
 
 // ========== GAMES ==========
@@ -334,49 +277,29 @@ function saveProfile() {
 }
 
 // ========== ATHLETES ==========
-function handleAthletePhotoUpload(e) {
-    // Preview handled in saveAthlete
-}
-
 function saveAthlete() {
     const name = document.getElementById('athleteName').value.trim();
     const number = document.getElementById('athleteNumber').value;
-    const position = document.getElementById('athletePosition').value;
-    const photoFile = document.getElementById('athletePhoto').files[0];
     
     if (!name) {
         alert('Por favor, insira o nome da atleta!');
         return;
     }
     
-    const saveAthleteData = (photo) => {
-        const athlete = {
-            id: Date.now(),
-            name,
-            number: number || '',
-            position: position || '',
-            photo: photo || null
-        };
-        
-        db.athletes.push(athlete);
-        saveData();
-        renderAthletes();
-        closeModal('athleteModal');
-        
-        // Reset form
-        document.getElementById('athleteName').value = '';
-        document.getElementById('athleteNumber').value = '';
-        document.getElementById('athletePosition').value = '';
-        document.getElementById('athletePhoto').value = '';
+    const athlete = {
+        id: Date.now(),
+        name,
+        number: number || ''
     };
     
-    if (photoFile) {
-        const reader = new FileReader();
-        reader.onload = (e) => saveAthleteData(e.target.result);
-        reader.readAsDataURL(photoFile);
-    } else {
-        saveAthleteData(null);
-    }
+    db.athletes.push(athlete);
+    saveData();
+    renderAthletes();
+    closeModal('athleteModal');
+    
+    // Reset form
+    document.getElementById('athleteName').value = '';
+    document.getElementById('athleteNumber').value = '';
 }
 
 function renderAthletes() {
@@ -392,19 +315,25 @@ function renderAthletes() {
         const card = document.createElement('div');
         card.className = 'athlete-card';
         
-        const img = document.createElement('img');
-        img.src = athlete.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(athlete.name)}&background=00ff88&color=000&size=128`;
-        img.alt = athlete.name;
-        
         card.innerHTML = `
-            <img src="${img.src}" alt="${athlete.name}">
+            <div style="width:80px; height:80px; border-radius:50%; background:var(--primary-color); display:flex; align-items:center; justify-content:center; font-size:32px; font-weight:900; color:#000; margin:0 auto 12px;">
+                ${athlete.name.charAt(0).toUpperCase()}
+            </div>
             <h3>${athlete.name}</h3>
             ${athlete.number ? `<div class="athlete-number">#${athlete.number}</div>` : ''}
-            <div class="athlete-position">${athlete.position || 'Posição não definida'}</div>
+            <button class="btn btn-danger btn-small" style="margin-top:10px;" onclick="deleteAthlete(${athlete.id})">🗑️ Remover</button>
         `;
         
         container.appendChild(card);
     });
+}
+
+function deleteAthlete(id) {
+    if (!confirm('Remover esta atleta?')) return;
+    
+    db.athletes = db.athletes.filter(a => a.id !== id);
+    saveData();
+    renderAthletes();
 }
 
 // ========== NOTES ==========
@@ -414,7 +343,7 @@ function openNoteModal() {
         return;
     }
     
-    document.getElementById('noteMinute').value = getCurrentMinute() + "'";
+    document.getElementById('noteMinute').value = '';
     document.getElementById('noteText').value = '';
     document.getElementById('noteVideoLink').value = '';
     document.getElementById('mediaPreview').innerHTML = '';
@@ -459,6 +388,7 @@ function saveNote() {
     
     const text = document.getElementById('noteText').value.trim();
     const videoLink = document.getElementById('noteVideoLink').value.trim();
+    const minute = parseInt(document.getElementById('noteMinute').value) || 0;
     
     if (!text && !noteImageData && !videoLink) {
         alert('Por favor, adicione pelo menos uma observação, imagem ou vídeo!');
@@ -469,7 +399,7 @@ function saveNote() {
         id: Date.now(),
         category: currentNoteCategory,
         subcategory: currentNoteSubcategory,
-        minute: getCurrentMinute(),
+        minute: minute,
         tag: selectedNoteTag,
         text: text,
         image: noteImageData,
@@ -604,7 +534,231 @@ function exportBackup() {
 }
 
 function exportPDF() {
-    alert('📄 Funcionalidade de exportação PDF será implementada na próxima versão!\n\nPor agora, pode usar a impressão do navegador (Ctrl/Cmd + P) para guardar como PDF.');
+    const game = getCurrentGame();
+    
+    if (!game) {
+        alert('Por favor, selecione um jogo primeiro!');
+        return;
+    }
+    
+    if (!game.notes || game.notes.length === 0) {
+        alert('Não há notas para exportar!');
+        return;
+    }
+    
+    // Verificar se jsPDF está disponível
+    if (typeof window.jspdf === 'undefined') {
+        alert('Erro: Biblioteca PDF não carregada. Por favor, recarregue a página.');
+        return;
+    }
+    
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+    });
+    
+    let yPos = 20;
+    const pageHeight = 297;
+    const margin = 20;
+    const lineHeight = 7;
+    
+    // Função para adicionar nova página se necessário
+    const checkNewPage = (neededSpace = 20) => {
+        if (yPos + neededSpace > pageHeight - margin) {
+            pdf.addPage();
+            yPos = 20;
+            return true;
+        }
+        return false;
+    };
+    
+    // CABEÇALHO
+    pdf.setFontSize(24);
+    pdf.setFont(undefined, 'bold');
+    pdf.setTextColor(0, 255, 136);
+    pdf.text('⚽ ANÁLISE TÁTICA', 105, yPos, { align: 'center' });
+    
+    yPos += 12;
+    pdf.setFontSize(16);
+    pdf.setTextColor(0, 0, 0);
+    pdf.text(game.name || 'Jogo sem nome', 105, yPos, { align: 'center' });
+    
+    yPos += 8;
+    pdf.setFontSize(12);
+    pdf.setTextColor(100, 100, 100);
+    pdf.text(game.date || new Date().toLocaleDateString('pt-PT'), 105, yPos, { align: 'center' });
+    
+    // Linha separadora
+    yPos += 8;
+    pdf.setDrawColor(0, 255, 136);
+    pdf.setLineWidth(0.5);
+    pdf.line(margin, yPos, 210 - margin, yPos);
+    
+    yPos += 10;
+    
+    // INFORMAÇÕES DO PERFIL
+    if (game.profile && (game.profile.teamName || game.profile.coachName)) {
+        checkNewPage();
+        
+        pdf.setFontSize(14);
+        pdf.setFont(undefined, 'bold');
+        pdf.setTextColor(0, 0, 0);
+        pdf.text('INFORMAÇÕES', margin, yPos);
+        yPos += 7;
+        
+        pdf.setFontSize(11);
+        pdf.setFont(undefined, 'normal');
+        
+        if (game.profile.teamName) {
+            pdf.text(`Equipa: ${game.profile.teamName}`, margin, yPos);
+            yPos += 6;
+        }
+        
+        if (game.profile.coachName) {
+            pdf.text(`Treinador: ${game.profile.coachName}`, margin, yPos);
+            yPos += 6;
+        }
+        
+        yPos += 5;
+    }
+    
+    // ORGANIZAR NOTAS POR CATEGORIA
+    const categories = {
+        'org-def': '🛡️ ORGANIZAÇÃO DEFENSIVA',
+        'trans-def': '⚡ TRANSIÇÃO DEFENSIVA',
+        'org-of': '⚔️ ORGANIZAÇÃO OFENSIVA',
+        'trans-of': '🚀 TRANSIÇÃO OFENSIVA',
+        'bolas': '⚽ BOLAS PARADAS'
+    };
+    
+    const subcategories = {
+        'bloco-alto': 'Bloco Alto / Pressão',
+        'bloco-medio': 'Bloco Médio / Baixo',
+        'reacao-perda': 'Reação à Perda',
+        'recuo-critico': 'Recuo Crítico',
+        'construcao': 'Construção',
+        'criacao': 'Criação',
+        'transicao': 'Transição Ofensiva',
+        'ofensivas': 'Ofensivas',
+        'defensivas': 'Defensivas'
+    };
+    
+    // Agrupar notas
+    const notesByCategory = {};
+    game.notes.forEach(note => {
+        const key = `${note.category}-${note.subcategory}`;
+        if (!notesByCategory[key]) {
+            notesByCategory[key] = [];
+        }
+        notesByCategory[key].push(note);
+    });
+    
+    // Renderizar notas por categoria
+    Object.keys(notesByCategory).forEach(key => {
+        const notes = notesByCategory[key];
+        const [category, subcategory] = key.split('-').slice(0, 2);
+        const fullSubcategory = key.split('-').slice(1).join('-');
+        
+        checkNewPage(30);
+        
+        // Título da categoria
+        pdf.setFontSize(14);
+        pdf.setFont(undefined, 'bold');
+        pdf.setTextColor(0, 255, 136);
+        pdf.text(categories[category] || category, margin, yPos);
+        yPos += 7;
+        
+        // Subtítulo
+        pdf.setFontSize(12);
+        pdf.setTextColor(0, 0, 0);
+        pdf.text(subcategories[fullSubcategory] || fullSubcategory, margin, yPos);
+        yPos += 8;
+        
+        // Notas
+        notes.sort((a, b) => a.minute - b.minute).forEach((note, index) => {
+            checkNewPage(25);
+            
+            // Minuto e Tag
+            pdf.setFontSize(10);
+            pdf.setFont(undefined, 'bold');
+            
+            // Cor da tag
+            if (note.tag === 'positive') {
+                pdf.setTextColor(0, 200, 0);
+            } else if (note.tag === 'negative') {
+                pdf.setTextColor(255, 0, 0);
+            } else {
+                pdf.setTextColor(50, 150, 255);
+            }
+            
+            const tagText = note.tag === 'positive' ? '✓ POSITIVO' : 
+                           note.tag === 'negative' ? '✗ NEGATIVO' : 'ℹ NEUTRO';
+            
+            pdf.text(`${note.minute}' - ${tagText}`, margin + 5, yPos);
+            yPos += 6;
+            
+            // Texto da nota
+            pdf.setTextColor(0, 0, 0);
+            pdf.setFont(undefined, 'normal');
+            
+            if (note.text) {
+                const textLines = pdf.splitTextToSize(note.text, 170);
+                textLines.forEach(line => {
+                    checkNewPage();
+                    pdf.text(line, margin + 5, yPos);
+                    yPos += 5;
+                });
+            }
+            
+            // Indicar anexos
+            if (note.image) {
+                pdf.setTextColor(100, 100, 100);
+                pdf.setFontSize(9);
+                pdf.text('📷 Imagem anexada', margin + 5, yPos);
+                yPos += 5;
+            }
+            
+            if (note.videoLink) {
+                pdf.setTextColor(100, 100, 100);
+                pdf.setFontSize(9);
+                pdf.text(`🎬 Vídeo: ${note.videoLink.substring(0, 40)}...`, margin + 5, yPos);
+                yPos += 5;
+            }
+            
+            yPos += 3;
+            
+            // Linha separadora entre notas
+            pdf.setDrawColor(200, 200, 200);
+            pdf.setLineWidth(0.1);
+            pdf.line(margin, yPos, 210 - margin, yPos);
+            yPos += 5;
+        });
+        
+        yPos += 5;
+    });
+    
+    // RODAPÉ (última página)
+    pdf.setFontSize(9);
+    pdf.setTextColor(150, 150, 150);
+    const totalPages = pdf.internal.pages.length - 1;
+    for (let i = 1; i <= totalPages; i++) {
+        pdf.setPage(i);
+        pdf.text(
+            `Gerado em: ${new Date().toLocaleDateString('pt-PT')} - Página ${i}/${totalPages}`,
+            105,
+            pageHeight - 10,
+            { align: 'center' }
+        );
+        pdf.text('Análise Tática Hub PRO v2.0', 105, pageHeight - 5, { align: 'center' });
+    }
+    
+    // Salvar PDF
+    const fileName = `Analise_${game.name.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+    pdf.save(fileName);
+    
+    alert('✅ PDF gerado com sucesso!');
 }
 
 // ========== UPDATE UI ==========
