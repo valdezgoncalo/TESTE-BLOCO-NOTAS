@@ -35,18 +35,8 @@
                 </select>
             </div>
 
-            <div class="timer-section">
-                <div class="timer-display" id="timerDisplay">00:00</div>
-                <div class="timer-controls">
-                    <button class="btn btn-small" id="startTimer">▶️</button>
-                    <button class="btn btn-small" id="pauseTimer">⏸️</button>
-                    <button class="btn btn-small" id="resetTimer">🔄</button>
-                </div>
-            </div>
-
             <div class="sidebar-section">
-                <button class="btn btn-secondary" id="exportPdfBtn">📄 PDF Completo</button>
-                <button class="btn btn-secondary" id="insertMinuteBtn">📍 Inserir Minuto</button>
+                <button class="btn btn-primary" id="exportPdfBtn">📄 Exportar PDF</button>
                 <button class="btn btn-danger" id="deleteGameBtn">🗑️ Apagar Jogo</button>
             </div>
 
@@ -198,7 +188,7 @@
             
             <div class="form-group">
                 <label>Minuto:</label>
-                <input type="text" id="noteMinute" class="input-field" readonly>
+                <input type="number" id="noteMinute" class="input-field" placeholder="Ex: 23" min="0" max="120">
             </div>
 
             <div class="form-group">
@@ -239,36 +229,13 @@
             <h2>👤 Adicionar Atleta</h2>
             
             <div class="form-group">
-                <label>Foto:</label>
-                <input type="file" id="athletePhoto" accept="image/*">
-            </div>
-
-            <div class="form-group">
                 <label>Nome:</label>
                 <input type="text" id="athleteName" class="input-field" placeholder="Nome completo">
             </div>
 
             <div class="form-group">
                 <label>Número:</label>
-                <input type="number" id="athleteNumber" class="input-field" placeholder="Número da camisola">
-            </div>
-
-            <div class="form-group">
-                <label>Posição:</label>
-                <select id="athletePosition" class="input-field">
-                    <option value="">Selecione...</option>
-                    <option value="GR">Guarda-Redes</option>
-                    <option value="DD">Defesa Direito</option>
-                    <option value="DC">Defesa Central</option>
-                    <option value="DE">Defesa Esquerdo</option>
-                    <option value="MC">Médio Centro</option>
-                    <option value="MD">Médio Direito</option>
-                    <option value="ME">Médio Esquerdo</option>
-                    <option value="MO">Médio Ofensivo</option>
-                    <option value="ED">Extremo Direito</option>
-                    <option value="EE">Extremo Esquerdo</option>
-                    <option value="PL">Ponta de Lança</option>
-                </select>
+                <input type="number" id="athleteNumber" class="input-field" placeholder="Número da camisola (opcional)">
             </div>
 
             <div class="modal-actions">
@@ -301,6 +268,7 @@
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
