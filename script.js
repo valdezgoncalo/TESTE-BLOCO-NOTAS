@@ -14,8 +14,8 @@ let db = {
 // ========== MODALS STATE ==========
 let currentNoteCategory = null;
 let currentNoteSubcategory = null;
-let selectedNoteTag = 'neutral';
 let noteImageData = null;
+let currentAthleteId = null;
 
 // ========== INIT ==========
 document.addEventListener('DOMContentLoaded', () => {
@@ -107,17 +107,14 @@ function initEventListeners() {
         closeModal('noteModal');
     });
     
-    // Tag selector
-    document.querySelectorAll('.tag-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('selected'));
-            btn.classList.add('selected');
-            selectedNoteTag = btn.dataset.tag;
-        });
-    });
-    
     // Note image upload
     document.getElementById('noteImage').addEventListener('change', handleNoteImageUpload);
+
+    // Athlete note modal
+    document.getElementById('saveAthleteNoteBtn').addEventListener('click', saveAthleteNote);
+    document.getElementById('cancelAthleteNoteBtn').addEventListener('click', () => {
+        closeModal('athleteNoteModal');
+    });
     
     // Modal close buttons
     document.querySelectorAll('.modal-close').forEach(btn => {
@@ -312,7 +309,8 @@ function saveAthlete() {
         id: Date.now(),
         name,
         number: number || '',
-        position: position || ''
+        position: position || '',
+        notes: []
     };
     
     db.athletes.push(athlete);
@@ -351,6 +349,8 @@ function renderAthletes() {
         const card = document.createElement('div');
         card.className = 'athlete-card';
         
+        const notesCount = athlete.notes ? athlete.notes.length : 0;
+
         card.innerHTML = `
             <div style="width:80px; height:80px; border-radius:50%; background:var(--primary-color); display:flex; align-items:center; justify-content:center; font-size:32px; font-weight:900; color:#000; margin:0 auto 12px;">
                 ${athlete.name.charAt(0).toUpperCase()}
@@ -358,7 +358,11 @@ function renderAthletes() {
             <h3>${athlete.name}</h3>
             ${athlete.number ? `<div class="athlete-number">#${athlete.number}</div>` : ''}
             ${athlete.position ? `<div class="athlete-position">${athlete.position}</div>` : ''}
-            <button class="btn btn-danger btn-small" style="margin-top:10px;" onclick="deleteAthlete(${athlete.id})">🗑️ Remover</button>
+            <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px;">
+                <button class="btn btn-secondary btn-small" onclick="openAthleteNoteModal(${athlete.id})">📝 Nova Nota</button>
+                <button class="btn btn-secondary btn-small" onclick="exportAthleteNotes(${athlete.id})">📄 Exportar (${notesCount})</button>
+                <button class="btn btn-danger btn-small" onclick="deleteAthlete(${athlete.id})">🗑️ Remover</button>
+            </div>
         `;
         
         container.appendChild(card);
@@ -373,6 +377,135 @@ function deleteAthlete(id) {
     renderAthletes();
 }
 
+function openAthleteNoteModal(athleteId) {
+    currentAthleteId = athleteId;
+    document.getElementById('athleteNoteMinute').value = '';
+    document.getElementById('athleteNoteText').value = '';
+    openModal('athleteNoteModal');
+}
+
+function saveAthleteNote() {
+    if (!currentAthleteId) return;
+
+    const athlete = db.athletes.find(a => a.id === currentAthleteId);
+    if (!athlete) return;
+
+    const text = document.getElementById('athleteNoteText').value.trim();
+    const minute = parseInt(document.getElementById('athleteNoteMinute').value) || 0;
+
+    if (!text) {
+        alert('Por favor, escreva uma nota para a atleta!');
+        return;
+    }
+
+    const note = {
+        id: Date.now(),
+        minute,
+        text,
+        timestamp: new Date().toISOString()
+    };
+
+    if (!athlete.notes) athlete.notes = [];
+    athlete.notes.push(note);
+
+    saveData();
+    renderAthletes();
+    closeModal('athleteNoteModal');
+}
+
+function exportAthleteNotes(athleteId) {
+    const athlete = db.athletes.find(a => a.id === athleteId);
+    if (!athlete) return;
+
+    if (!athlete.notes || athlete.notes.length === 0) {
+        alert('Esta atleta não tem notas para exportar.');
+        return;
+    }
+
+    if (typeof window.jspdf === 'undefined') {
+        alert('Erro: Biblioteca PDF não carregada. Por favor, recarregue a página.');
+        return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+    });
+
+    let yPos = 20;
+    const pageHeight = 297;
+    const margin = 20;
+
+    const checkNewPage = (neededSpace = 20) => {
+        if (yPos + neededSpace > pageHeight - margin) {
+            pdf.addPage();
+            yPos = 20;
+            return true;
+        }
+        return false;
+    };
+
+    pdf.setFontSize(20);
+    pdf.setFont(undefined, 'bold');
+    pdf.setTextColor(0, 255, 136);
+    pdf.text('NOTAS DA ATLETA', 105, yPos, { align: 'center' });
+
+    yPos += 12;
+    pdf.setFontSize(14);
+    pdf.setTextColor(0, 0, 0);
+    pdf.text(athlete.name, 105, yPos, { align: 'center' });
+
+    yPos += 6;
+    pdf.setFontSize(10);
+    pdf.setTextColor(120, 120, 120);
+    const meta = [
+        athlete.position ? `Posição: ${athlete.position}` : null,
+        athlete.number ? `Número: #${athlete.number}` : null
+    ].filter(Boolean).join(' | ');
+    if (meta) {
+        pdf.text(meta, 105, yPos, { align: 'center' });
+        yPos += 8;
+    } else {
+        yPos += 4;
+    }
+
+    pdf.setDrawColor(0, 255, 136);
+    pdf.setLineWidth(0.5);
+    pdf.line(margin, yPos, 210 - margin, yPos);
+    yPos += 8;
+
+    athlete.notes
+        .slice()
+        .sort((a, b) => a.minute - b.minute)
+        .forEach((note) => {
+            checkNewPage(20);
+            pdf.setFontSize(11);
+            pdf.setFont(undefined, 'bold');
+            pdf.setTextColor(0, 0, 0);
+            pdf.text(`${note.minute}'`, margin, yPos);
+
+            pdf.setFont(undefined, 'normal');
+            const lines = pdf.splitTextToSize(note.text, 170);
+            yPos += 6;
+            lines.forEach(line => {
+                checkNewPage();
+                pdf.text(line, margin, yPos);
+                yPos += 5;
+            });
+
+            yPos += 3;
+            pdf.setDrawColor(220, 220, 220);
+            pdf.line(margin, yPos, 210 - margin, yPos);
+            yPos += 6;
+        });
+
+    const fileName = `Notas_${athlete.name.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+    pdf.save(fileName);
+    alert('✅ PDF das notas da atleta gerado!');
+}
+
 // ========== NOTES ==========
 function openNoteModal() {
     if (!db.currentGame) {
@@ -385,11 +518,6 @@ function openNoteModal() {
     document.getElementById('noteVideoLink').value = '';
     document.getElementById('mediaPreview').innerHTML = '';
     noteImageData = null;
-    
-    // Reset tag selection
-    document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('selected'));
-    document.querySelector('.tag-btn.neutral').classList.add('selected');
-    selectedNoteTag = 'neutral';
     
     openModal('noteModal');
 }
@@ -437,7 +565,6 @@ function saveNote() {
         category: currentNoteCategory,
         subcategory: currentNoteSubcategory,
         minute: minute,
-        tag: selectedNoteTag,
         text: text,
         image: noteImageData,
         videoLink: videoLink,
@@ -483,12 +610,7 @@ function renderNotes(category, subcategory) {
     
     notes.forEach(note => {
         const noteEl = document.createElement('div');
-        noteEl.className = `note-item ${note.tag}`;
-        
-        let tagLabel = '';
-        if (note.tag === 'positive') tagLabel = '✅ Positivo';
-        else if (note.tag === 'negative') tagLabel = '❌ Negativo';
-        else tagLabel = 'ℹ️ Neutro';
+        noteEl.className = 'note-item';
         
         let mediaHTML = '';
         if (note.image || note.videoLink) {
@@ -508,7 +630,6 @@ function renderNotes(category, subcategory) {
         noteEl.innerHTML = `
             <div class="note-header">
                 <span class="note-minute">${note.minute}'</span>
-                <span class="note-tag ${note.tag}">${tagLabel}</span>
             </div>
             <div class="note-text">${note.text || '<em style="color:var(--text-secondary)">Sem texto</em>'}</div>
             ${mediaHTML}
@@ -736,26 +857,14 @@ function exportPDF() {
         yPos += 8;
         
         // Notas
-        notes.sort((a, b) => a.minute - b.minute).forEach((note, index) => {
+        notes.sort((a, b) => a.minute - b.minute).forEach((note) => {
             checkNewPage(25);
             
-            // Minuto e Tag
+            // Minuto
             pdf.setFontSize(10);
             pdf.setFont(undefined, 'bold');
-            
-            // Cor da tag
-            if (note.tag === 'positive') {
-                pdf.setTextColor(0, 200, 0);
-            } else if (note.tag === 'negative') {
-                pdf.setTextColor(255, 0, 0);
-            } else {
-                pdf.setTextColor(50, 150, 255);
-            }
-            
-            const tagText = note.tag === 'positive' ? '✓ POSITIVO' : 
-                           note.tag === 'negative' ? '✗ NEGATIVO' : 'ℹ NEUTRO';
-            
-            pdf.text(`${note.minute}' - ${tagText}`, margin + 5, yPos);
+            pdf.setTextColor(0, 0, 0);
+            pdf.text(`${note.minute}'`, margin + 5, yPos);
             yPos += 6;
             
             // Texto da nota
@@ -839,28 +948,16 @@ function updateUI() {
 function updateSummary() {
     const game = getCurrentGame();
     const summaryTotal = document.getElementById('summaryTotal');
-    const summaryPositive = document.getElementById('summaryPositive');
-    const summaryNeutral = document.getElementById('summaryNeutral');
-    const summaryNegative = document.getElementById('summaryNegative');
     const summaryGameName = document.getElementById('summaryGameName');
 
     if (!game) {
         summaryTotal.textContent = '0';
-        summaryPositive.textContent = '0';
-        summaryNeutral.textContent = '0';
-        summaryNegative.textContent = '0';
         summaryGameName.textContent = 'Selecione um jogo para ver o resumo.';
         return;
     }
 
     const notes = game.notes || [];
-    const positiveCount = notes.filter(note => note.tag === 'positive').length;
-    const neutralCount = notes.filter(note => note.tag === 'neutral').length;
-    const negativeCount = notes.filter(note => note.tag === 'negative').length;
 
     summaryTotal.textContent = notes.length;
-    summaryPositive.textContent = positiveCount;
-    summaryNeutral.textContent = neutralCount;
-    summaryNegative.textContent = negativeCount;
     summaryGameName.textContent = game.name ? `Resumo de ${game.name}` : 'Resumo do jogo selecionado';
 }
