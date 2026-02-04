@@ -36,6 +36,29 @@
             </div>
 
             <div class="sidebar-section">
+                <h3>📊 Resumo do Jogo</h3>
+                <div class="summary-grid">
+                    <div class="summary-card">
+                        <span class="summary-label">Notas</span>
+                        <span class="summary-value" id="summaryTotal">0</span>
+                    </div>
+                    <div class="summary-card">
+                        <span class="summary-label">Positivas</span>
+                        <span class="summary-value positive" id="summaryPositive">0</span>
+                    </div>
+                    <div class="summary-card">
+                        <span class="summary-label">Neutras</span>
+                        <span class="summary-value neutral" id="summaryNeutral">0</span>
+                    </div>
+                    <div class="summary-card">
+                        <span class="summary-label">Negativas</span>
+                        <span class="summary-value negative" id="summaryNegative">0</span>
+                    </div>
+                </div>
+                <p class="summary-footnote" id="summaryGameName">Selecione um jogo para ver o resumo.</p>
+            </div>
+
+            <div class="sidebar-section">
                 <button class="btn btn-primary" id="exportPdfBtn">📄 Exportar PDF</button>
                 <button class="btn btn-danger" id="deleteGameBtn">🗑️ Apagar Jogo</button>
             </div>
@@ -68,10 +91,16 @@
                     </div>
                     <div class="profile-info">
                         <h2>Informações Gerais</h2>
-                        <input type="text" id="teamName" placeholder="Nome da Equipa" class="input-field">
-                        <input type="text" id="coachName" placeholder="Nome do Treinador" class="input-field">
-                        <input type="text" id="gameName" placeholder="Nome do Jogo/Treino" class="input-field">
-                        <input type="date" id="gameDate" class="input-field">
+                        <div class="profile-fields">
+                            <input type="text" id="teamName" placeholder="Nome da Equipa" class="input-field">
+                            <input type="text" id="coachName" placeholder="Nome do Treinador" class="input-field">
+                            <input type="text" id="opponentName" placeholder="Adversário" class="input-field">
+                            <input type="text" id="competitionName" placeholder="Competição" class="input-field">
+                            <input type="text" id="gameLocation" placeholder="Local" class="input-field">
+                            <input type="text" id="formation" placeholder="Formação (ex: 4-3-3)" class="input-field">
+                            <input type="text" id="gameName" placeholder="Nome do Jogo/Treino" class="input-field">
+                            <input type="date" id="gameDate" class="input-field">
+                        </div>
                         <textarea id="gameNotes" placeholder="Notas gerais do jogo..." class="textarea-field"></textarea>
                         <button class="btn btn-primary" id="saveProfileBtn">💾 Guardar Perfil</button>
                     </div>
@@ -83,6 +112,9 @@
                     <div class="section-header">
                         <h2>Gestão de Atletas</h2>
                         <button class="btn btn-primary" id="addAthleteBtn">+ Adicionar Atleta</button>
+                    </div>
+                    <div class="athletes-toolbar">
+                        <input type="text" id="athleteSearch" class="input-field" placeholder="🔎 Pesquisar atleta...">
                     </div>
                     <div id="athletesList" class="athletes-grid"></div>
                 </div>
@@ -236,6 +268,11 @@
             <div class="form-group">
                 <label>Número:</label>
                 <input type="number" id="athleteNumber" class="input-field" placeholder="Número da camisola (opcional)">
+            </div>
+
+            <div class="form-group">
+                <label>Posição:</label>
+                <input type="text" id="athletePosition" class="input-field" placeholder="Ex: Defesa Central">
             </div>
 
             <div class="modal-actions">

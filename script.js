@@ -84,6 +84,8 @@ function initEventListeners() {
     document.getElementById('addAthleteBtn').addEventListener('click', () => {
         openModal('athleteModal');
     });
+
+    document.getElementById('athleteSearch').addEventListener('input', renderAthletes);
     
     document.getElementById('saveAthleteBtn').addEventListener('click', saveAthlete);
     document.getElementById('cancelAthleteBtn').addEventListener('click', () => {
@@ -163,6 +165,10 @@ function createNewGame() {
         profile: {
             teamName: '',
             coachName: '',
+            opponentName: '',
+            competitionName: '',
+            gameLocation: '',
+            formation: '',
             gameName: name,
             gameDate: date,
             gameNotes: ''
@@ -191,6 +197,10 @@ function loadGame(gameId) {
     // Load profile
     document.getElementById('teamName').value = game.profile.teamName || '';
     document.getElementById('coachName').value = game.profile.coachName || '';
+    document.getElementById('opponentName').value = game.profile.opponentName || '';
+    document.getElementById('competitionName').value = game.profile.competitionName || '';
+    document.getElementById('gameLocation').value = game.profile.gameLocation || '';
+    document.getElementById('formation').value = game.profile.formation || '';
     document.getElementById('gameName').value = game.profile.gameName || '';
     document.getElementById('gameDate').value = game.profile.gameDate || '';
     document.getElementById('gameNotes').value = game.profile.gameNotes || '';
@@ -199,6 +209,7 @@ function loadGame(gameId) {
     document.getElementById('gameSelect').value = gameId;
     
     renderAllNotes();
+    updateSummary();
 }
 
 function deleteCurrentGame() {
@@ -221,10 +232,15 @@ function deleteCurrentGame() {
 function clearCurrentGameUI() {
     document.getElementById('teamName').value = '';
     document.getElementById('coachName').value = '';
+    document.getElementById('opponentName').value = '';
+    document.getElementById('competitionName').value = '';
+    document.getElementById('gameLocation').value = '';
+    document.getElementById('formation').value = '';
     document.getElementById('gameName').value = '';
     document.getElementById('gameDate').value = '';
     document.getElementById('gameNotes').value = '';
     document.querySelectorAll('.notes-list').forEach(list => list.innerHTML = '');
+    updateSummary();
 }
 
 function updateGamesList() {
@@ -267,12 +283,17 @@ function saveProfile() {
     game.profile = {
         teamName: document.getElementById('teamName').value,
         coachName: document.getElementById('coachName').value,
+        opponentName: document.getElementById('opponentName').value,
+        competitionName: document.getElementById('competitionName').value,
+        gameLocation: document.getElementById('gameLocation').value,
+        formation: document.getElementById('formation').value,
         gameName: document.getElementById('gameName').value,
         gameDate: document.getElementById('gameDate').value,
         gameNotes: document.getElementById('gameNotes').value
     };
     
     saveData();
+    updateSummary();
     alert('✅ Perfil guardado!');
 }
 
@@ -280,6 +301,7 @@ function saveProfile() {
 function saveAthlete() {
     const name = document.getElementById('athleteName').value.trim();
     const number = document.getElementById('athleteNumber').value;
+    const position = document.getElementById('athletePosition').value.trim();
     
     if (!name) {
         alert('Por favor, insira o nome da atleta!');
@@ -289,7 +311,8 @@ function saveAthlete() {
     const athlete = {
         id: Date.now(),
         name,
-        number: number || ''
+        number: number || '',
+        position: position || ''
     };
     
     db.athletes.push(athlete);
@@ -300,18 +323,31 @@ function saveAthlete() {
     // Reset form
     document.getElementById('athleteName').value = '';
     document.getElementById('athleteNumber').value = '';
+    document.getElementById('athletePosition').value = '';
 }
 
 function renderAthletes() {
     const container = document.getElementById('athletesList');
     container.innerHTML = '';
+
+    const searchTerm = document.getElementById('athleteSearch').value.trim().toLowerCase();
+    const athletes = db.athletes.filter(athlete =>
+        athlete.name.toLowerCase().includes(searchTerm) ||
+        (athlete.number && athlete.number.toString().includes(searchTerm)) ||
+        (athlete.position && athlete.position.toLowerCase().includes(searchTerm))
+    );
     
     if (db.athletes.length === 0) {
         container.innerHTML = '<p style="text-align:center; color:var(--text-secondary); padding:40px;">Nenhuma atleta registada</p>';
         return;
     }
+
+    if (athletes.length === 0) {
+        container.innerHTML = '<p style="text-align:center; color:var(--text-secondary); padding:40px;">Nenhuma atleta encontrada</p>';
+        return;
+    }
     
-    db.athletes.forEach(athlete => {
+    athletes.forEach(athlete => {
         const card = document.createElement('div');
         card.className = 'athlete-card';
         
@@ -321,6 +357,7 @@ function renderAthletes() {
             </div>
             <h3>${athlete.name}</h3>
             ${athlete.number ? `<div class="athlete-number">#${athlete.number}</div>` : ''}
+            ${athlete.position ? `<div class="athlete-position">${athlete.position}</div>` : ''}
             <button class="btn btn-danger btn-small" style="margin-top:10px;" onclick="deleteAthlete(${athlete.id})">🗑️ Remover</button>
         `;
         
@@ -412,6 +449,7 @@ function saveNote() {
     
     saveData();
     renderNotes(currentNoteCategory, currentNoteSubcategory);
+    updateSummary();
     closeModal('noteModal');
 }
 
@@ -424,6 +462,7 @@ function deleteNote(noteId) {
     game.notes = game.notes.filter(n => n.id !== noteId);
     saveData();
     renderAllNotes();
+    updateSummary();
 }
 
 function renderNotes(category, subcategory) {
@@ -599,7 +638,7 @@ function exportPDF() {
     yPos += 10;
     
     // INFORMAÇÕES DO PERFIL
-    if (game.profile && (game.profile.teamName || game.profile.coachName)) {
+    if (game.profile && (game.profile.teamName || game.profile.coachName || game.profile.opponentName || game.profile.competitionName || game.profile.gameLocation || game.profile.formation)) {
         checkNewPage();
         
         pdf.setFontSize(14);
@@ -618,6 +657,26 @@ function exportPDF() {
         
         if (game.profile.coachName) {
             pdf.text(`Treinador: ${game.profile.coachName}`, margin, yPos);
+            yPos += 6;
+        }
+
+        if (game.profile.opponentName) {
+            pdf.text(`Adversário: ${game.profile.opponentName}`, margin, yPos);
+            yPos += 6;
+        }
+
+        if (game.profile.competitionName) {
+            pdf.text(`Competição: ${game.profile.competitionName}`, margin, yPos);
+            yPos += 6;
+        }
+
+        if (game.profile.gameLocation) {
+            pdf.text(`Local: ${game.profile.gameLocation}`, margin, yPos);
+            yPos += 6;
+        }
+
+        if (game.profile.formation) {
+            pdf.text(`Formação: ${game.profile.formation}`, margin, yPos);
             yPos += 6;
         }
         
@@ -773,4 +832,35 @@ function updateUI() {
     if (db.profile.photo) {
         document.getElementById('profileImg').src = db.profile.photo;
     }
+
+    updateSummary();
+}
+
+function updateSummary() {
+    const game = getCurrentGame();
+    const summaryTotal = document.getElementById('summaryTotal');
+    const summaryPositive = document.getElementById('summaryPositive');
+    const summaryNeutral = document.getElementById('summaryNeutral');
+    const summaryNegative = document.getElementById('summaryNegative');
+    const summaryGameName = document.getElementById('summaryGameName');
+
+    if (!game) {
+        summaryTotal.textContent = '0';
+        summaryPositive.textContent = '0';
+        summaryNeutral.textContent = '0';
+        summaryNegative.textContent = '0';
+        summaryGameName.textContent = 'Selecione um jogo para ver o resumo.';
+        return;
+    }
+
+    const notes = game.notes || [];
+    const positiveCount = notes.filter(note => note.tag === 'positive').length;
+    const neutralCount = notes.filter(note => note.tag === 'neutral').length;
+    const negativeCount = notes.filter(note => note.tag === 'negative').length;
+
+    summaryTotal.textContent = notes.length;
+    summaryPositive.textContent = positiveCount;
+    summaryNeutral.textContent = neutralCount;
+    summaryNegative.textContent = negativeCount;
+    summaryGameName.textContent = game.name ? `Resumo de ${game.name}` : 'Resumo do jogo selecionado';
 }

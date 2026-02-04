@@ -199,6 +199,56 @@ textarea:focus-visible {
     cursor: pointer;
 }
 
+/* ========== SUMMARY ========== */
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.summary-card {
+    background: var(--bg-dark);
+    border-radius: 10px;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.summary-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-secondary);
+}
+
+.summary-value {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+.summary-value.positive {
+    color: var(--positive);
+}
+
+.summary-value.neutral {
+    color: var(--neutral);
+}
+
+.summary-value.negative {
+    color: var(--negative);
+}
+
+.summary-footnote {
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
 /* ========== SYNC STATUS ========== */
 .sync-status {
     padding: 10px;
@@ -315,6 +365,12 @@ textarea:focus-visible {
     color: var(--primary-color);
 }
 
+.profile-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 16px;
+}
+
 /* ========== FORM ELEMENTS ========== */
 .input-field,
 .textarea-field {
@@ -349,6 +405,10 @@ textarea:focus-visible {
     border-radius: 12px;
     border: 1px solid var(--border-color);
     box-shadow: 0 16px 28px rgba(0, 0, 0, 0.2);
+}
+
+.athletes-toolbar {
+    margin-bottom: 16px;
 }
 
 .section-header {
@@ -761,6 +821,10 @@ textarea:focus-visible {
     }
 
     .profile-section {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-fields {
         grid-template-columns: 1fr;
     }
 
