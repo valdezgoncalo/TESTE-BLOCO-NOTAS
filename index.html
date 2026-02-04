@@ -37,22 +37,10 @@
 
             <div class="sidebar-section">
                 <h3>📊 Resumo do Jogo</h3>
-                <div class="summary-grid">
+                <div class="summary-grid single">
                     <div class="summary-card">
                         <span class="summary-label">Notas</span>
                         <span class="summary-value" id="summaryTotal">0</span>
-                    </div>
-                    <div class="summary-card">
-                        <span class="summary-label">Positivas</span>
-                        <span class="summary-value positive" id="summaryPositive">0</span>
-                    </div>
-                    <div class="summary-card">
-                        <span class="summary-label">Neutras</span>
-                        <span class="summary-value neutral" id="summaryNeutral">0</span>
-                    </div>
-                    <div class="summary-card">
-                        <span class="summary-label">Negativas</span>
-                        <span class="summary-value negative" id="summaryNegative">0</span>
                     </div>
                 </div>
                 <p class="summary-footnote" id="summaryGameName">Selecione um jogo para ver o resumo.</p>
@@ -224,15 +212,6 @@
             </div>
 
             <div class="form-group">
-                <label>Tipo de Nota:</label>
-                <div class="tag-selector">
-                    <button class="tag-btn positive" data-tag="positive">✅ Positivo</button>
-                    <button class="tag-btn negative" data-tag="negative">❌ Negativo</button>
-                    <button class="tag-btn neutral" data-tag="neutral">ℹ️ Neutro</button>
-                </div>
-            </div>
-
-            <div class="form-group">
                 <label>Nota:</label>
                 <textarea id="noteText" class="textarea-field" rows="4" placeholder="Escreve a tua observação..."></textarea>
             </div>
@@ -278,6 +257,29 @@
             <div class="modal-actions">
                 <button class="btn btn-primary" id="saveAthleteBtn">💾 Guardar</button>
                 <button class="btn btn-secondary" id="cancelAthleteBtn">❌ Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PARA NOTA DE ATLETA -->
+    <div id="athleteNoteModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close">&times;</span>
+            <h2>📝 Nota da Atleta</h2>
+
+            <div class="form-group">
+                <label>Minuto:</label>
+                <input type="number" id="athleteNoteMinute" class="input-field" placeholder="Ex: 45" min="0" max="120">
+            </div>
+
+            <div class="form-group">
+                <label>Nota:</label>
+                <textarea id="athleteNoteText" class="textarea-field" rows="4" placeholder="Escreve a tua observação..."></textarea>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-primary" id="saveAthleteNoteBtn">💾 Guardar Nota</button>
+                <button class="btn btn-secondary" id="cancelAthleteNoteBtn">❌ Cancelar</button>
             </div>
         </div>
     </div>
